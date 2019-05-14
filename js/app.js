@@ -10,11 +10,14 @@ var position = 0;
 var up = new THREE.Vector3(0, 0, 1);
 
 function init() {
+  Physijs.scripts.worker = "/lib/physijs_worker.js";
+  Physijs.scripts.ammo = "/lib/ammo.js";
+
   container = document.querySelector("#scene-container");
-  scene = new THREE.Scene();
+  scene = new Physijs.Scene();
+  scene.setGravity(new THREE.Vector3(0, -10, 0));
   scene.background = new THREE.Color("lightgrey");
   scene.rotateX(-1);
-
   createCamera();
   createControls();
   createLights();
@@ -63,11 +66,14 @@ function createLights() {
 function createMeshes() {
   const planeGeometry = new THREE.PlaneGeometry(2, 10, 10, 1);
   var planeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
-  var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+  var plane = new Physijs.PlaneMesh(planeGeometry, planeMaterial);
   plane.receiveShadow = true;
   plane.translateY(5);
   //plane.rotateX(-1.57);
   scene.add(plane);
+
+  var axes = new THREE.AxisHelper(20);
+  scene.add(axes);
 
   var geometry = new THREE.SphereBufferGeometry(
     0.1,
@@ -89,12 +95,14 @@ function createMeshes() {
   //     flatShading: THREE.FlatShading
   //   });
 
-  var axes = new THREE.AxisHelper(20);
-  scene.add(axes);
-
-  mesh = new THREE.Mesh(geometry, material);
+  mesh = new Physijs.SphereMesh(geometry, material);
   mesh.position.y = 0.1;
   scene.add(mesh);
+
+  var anotherSphere = mesh.clone();
+  anotherSphere.position.z = 10;
+  anotherSphere.position.x = 10;
+  scene.add(anotherSphere);
   curve = new THREE.CubicBezierCurve3(
     new THREE.Vector3(0.5, 0.4, 1),
     new THREE.Vector3(0.5, 1, 1),
@@ -104,9 +112,9 @@ function createMeshes() {
 
   var geometry = new THREE.CylinderBufferGeometry(0.4, 0.4, 1, 2);
   var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-  var cubeMesh = new THREE.Mesh(geometry, material);
+  var cubeMesh = new Physijs.CylinderMesh(geometry, material);
 
-  cubeMesh.position.z = 0.1;
+  cubeMesh.position.set(6, 7, 8);
 
   cubeMesh.rotateX(-1.54);
   scene.add(cubeMesh);
@@ -114,7 +122,7 @@ function createMeshes() {
   var another = cubeMesh.clone();
   another.position.y = -0.1;
   scene.add(another);
-
+  scene.simulate();
   drawPath();
 }
 
@@ -129,6 +137,7 @@ function drawPath() {
 }
 
 function move() {
+  scene.simulate();
   position += 0.03;
 
   var point = curve.getPointAt(position);
@@ -159,6 +168,7 @@ function createRenderer() {
 
 function render() {
   renderer.render(scene, camera);
+  scene.simulate();
 }
 
 function onWindowResize() {
