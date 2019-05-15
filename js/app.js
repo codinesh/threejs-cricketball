@@ -5,9 +5,10 @@ let renderer;
 let scene;
 let mesh;
 let controls;
-var angle = 0;
-var position = 0;
-var up = new THREE.Vector3(0, 0, 1);
+let angle = 0;
+let position = 0;
+let interval = 10;
+let up = new THREE.Vector3(0, 0, 1);
 
 function init() {
   Physijs.scripts.worker = "/lib/physijs_worker.js";
@@ -15,9 +16,16 @@ function init() {
 
   container = document.querySelector("#scene-container");
   scene = new Physijs.Scene();
-  scene.setGravity(new THREE.Vector3(0, -10, 0));
+  scene.setGravity(new THREE.Vector3(0, -30, 0));
   scene.background = new THREE.Color("lightgrey");
-  scene.rotateX(-1);
+
+  scene.addEventListener("update", function() {
+    scene.simulate(undefined, 1);
+    //physics_stats.update();
+  });
+  //scene.rotateX(-1);
+
+  createGround();
   createCamera();
   createControls();
   createLights();
@@ -32,15 +40,63 @@ function init() {
   container.appendChild(renderer.domElement);
 }
 
+function createGround() {
+  // const planeGeometry = new THREE.PlaneGeometry(2, 10, 10, 1);
+  // let planeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+  // let plane = new Physijs.PlaneMesh(planeGeometry, planeMaterial);
+  // plane.receiveShadow = true;
+  // plane.translateY(5);
+  // //plane.rotateX(-1.57);
+  // scene.add(plane);
+
+  let axes = new THREE.AxisHelper(20);
+  scene.add(axes);
+
+  // Loader
+  loader = new THREE.TextureLoader();
+  ground_material = Physijs.createMaterial(
+    new THREE.MeshLambertMaterial({
+      map: loader.load("images/rocks.jpg")
+    }),
+    0.8, // high friction
+    0.4 // low restitution
+  );
+  ground_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping;
+  ground_material.map.repeat.set(3, 3);
+
+  box_material = Physijs.createMaterial(
+    new THREE.MeshLambertMaterial({
+      map: loader.load("images/plywood.jpg")
+    }),
+    0.4, // low friction
+    0.6 // high restitution
+  );
+  box_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping;
+  box_material.map.repeat.set(0.25, 0.25);
+
+  // Ground
+  ground = new Physijs.BoxMesh(
+    new THREE.BoxGeometry(10, 30, 0.1),
+    ground_material,
+    0 // mass
+  );
+  ground.receiveShadow = true;
+  ground.rotateX(Math.PI / 2);
+  ground.position.z = -15;
+  ground.receiveShadow = true;
+  scene.add(ground);
+  scene.simulate();
+}
+
 function createCamera() {
   const fov = 45;
   const aspect = container.clientWidth / container.clientHeight;
   const near = 1;
-  const far = 100;
+  const far = 1000;
 
   camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(0, 0, 5);
-  //camera.rotateX(-1);
+  camera.position.set(0, 8, 15);
+  // camera.lookAt(scene.position);
 }
 
 function createControls() {
@@ -59,23 +115,12 @@ function createLights() {
 
   // directional light
   const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
-  directionalLight.position.set(10, 10, 10);
+  directionalLight.position.set(0, 0, 10);
   scene.add(ambientLight, directionalLight);
 }
 
 function createMeshes() {
-  const planeGeometry = new THREE.PlaneGeometry(2, 10, 10, 1);
-  var planeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
-  var plane = new Physijs.PlaneMesh(planeGeometry, planeMaterial);
-  plane.receiveShadow = true;
-  plane.translateY(5);
-  //plane.rotateX(-1.57);
-  scene.add(plane);
-
-  var axes = new THREE.AxisHelper(20);
-  scene.add(axes);
-
-  var geometry = new THREE.SphereBufferGeometry(
+  let ballGeometry = new THREE.SphereBufferGeometry(
     0.1,
     50,
     50,
@@ -85,72 +130,135 @@ function createMeshes() {
     Math.PI * 2
   );
 
-  var material = new THREE.MeshPhongMaterial({
-    color: "red",
-    flatShading: THREE.FlatShading
-  });
-
-  //   var material = new THREE.MeshStandardMaterial({
-  //     color: 0xff0000,
-  //     flatShading: THREE.FlatShading
-  //   });
-
-  mesh = new Physijs.SphereMesh(geometry, material);
-  mesh.position.y = 0.1;
-  scene.add(mesh);
-
-  var anotherSphere = mesh.clone();
-  anotherSphere.position.z = 10;
-  anotherSphere.position.x = 10;
-  scene.add(anotherSphere);
-  curve = new THREE.CubicBezierCurve3(
-    new THREE.Vector3(0.5, 0.4, 1),
-    new THREE.Vector3(0.5, 1, 1),
-    new THREE.Vector3(0.3, 8, 0.01),
-    new THREE.Vector3(0.2, 8.5, 0.01)
+  ballMaterial = Physijs.createMaterial(
+    new THREE.MeshStandardMaterial({
+      color: 0xff0000,
+      flatShading: THREE.FlatShading
+    }),
+    0.8, // high friction
+    0.4 // low restitution
   );
 
-  var geometry = new THREE.CylinderBufferGeometry(0.4, 0.4, 1, 2);
-  var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-  var cubeMesh = new Physijs.CylinderMesh(geometry, material);
+  ballMesh = new Physijs.SphereMesh(ballGeometry, ballMaterial, 0.1);
+  ballMesh.position.y = 0.1;
+  scene.add(ballMesh);
 
-  cubeMesh.position.set(6, 7, 8);
+  let gho = ballMesh.clone();
+  gho.position.y = 10.6;
+  gho.position.x = 2;
+  gho.position.z = -7;
+  gho.mass = 0.002;
+  scene.add(gho);
 
-  cubeMesh.rotateX(-1.54);
-  scene.add(cubeMesh);
+  let ageometry = new THREE.CylinderGeometry(0.6, 0.7, 5, 12);
+  let acubeMesh1 = new Physijs.CylinderMesh(
+    ageometry,
+    new THREE.MeshBasicMaterial({
+      color: 0x00ff00,
+      flatShading: THREE.FlatShading
+    }),
+    0
+  );
 
-  var another = cubeMesh.clone();
-  another.position.y = -0.1;
-  scene.add(another);
-  scene.simulate();
+  acubeMesh1.position.set(2, 5, -7);
+  acubeMesh1.mass = 0.3;
+  scene.add(acubeMesh1);
+
+  curve = new THREE.CubicBezierCurve3(
+    new THREE.Vector3(2, 5, 0),
+    new THREE.Vector3(2, 5, -1),
+    new THREE.Vector3(1.3, 0.6, -22),
+    new THREE.Vector3(1, 0.1, -23)
+  );
+
+  curve2 = new THREE.CubicBezierCurve3(
+    new THREE.Vector3(1, 0.1, -23),
+    new THREE.Vector3(1, 0.1, -23),
+    new THREE.Vector3(0.3, 1, -25),
+    new THREE.Vector3(0.3, 1, -25)
+  );
+
+  createStumps();
   drawPath();
 }
 
+function createStumps() {
+  let stumpsmaterial = Physijs.createMaterial(
+    new THREE.MeshBasicMaterial({
+      color: 0x00ff00,
+      flatShading: THREE.FlatShading
+    }),
+    0.8, // high friction
+    0.4 // low restitution
+  );
+
+  let geometry = new THREE.CylinderGeometry(0.07, 0.07, 1, 12);
+  let cubeMesh1 = new Physijs.CylinderMesh(
+    geometry,
+    new THREE.MeshBasicMaterial({
+      color: 0x00ff00,
+      flatShading: THREE.FlatShading
+    }),
+    0
+  );
+
+  cubeMesh1.position.set(0, 0.5, -2);
+  cubeMesh1.mass = 0;
+  scene.add(cubeMesh1);
+
+  let another1 = cubeMesh1.clone();
+  another1.mass = 0;
+  another1.translateX(-0.2);
+  scene.add(another1);
+
+  let another2 = cubeMesh1.clone();
+  another2.translateX(0.2);
+  another2.mass = 0;
+  scene.add(another2);
+
+  let another3 = cubeMesh1.clone();
+  another3.mass = 0;
+  another3.translateZ(-26);
+  scene.add(another3);
+
+  let another4 = another3.clone();
+  another4.translateX(-0.2);
+  another4.mass = 0;
+  scene.add(another4);
+
+  let another5 = another3.clone();
+  another5.translateX(0.2);
+  another5.mass = 0;
+  scene.add(another5);
+}
+
 function drawPath() {
-  var points = curve.getPoints(50);
-  var lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-  var lineMaterial = new THREE.LineBasicMaterial({
-    color: 0xffffff
+  let points = curve.getPoints(50);
+  points = points.concat(curve2.getPoints(50));
+  let lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+  let lineMaterial = new THREE.LineBasicMaterial({
+    color: "red",
+    linewidth: 5
   });
 
   scene.add(new THREE.Line(lineGeometry, lineMaterial));
 }
 
 function move() {
+  let point = curve.getPointAt(position);
   scene.simulate();
   position += 0.03;
 
-  var point = curve.getPointAt(position);
-  mesh.position.x = point.x;
-  mesh.position.y = point.y;
-  mesh.position.z = point.z;
+  ballMesh.position.x = point.x;
+  ballMesh.position.y = point.y;
+  ballMesh.position.z = point.z;
 
-  var angle = getAngle(position);
-  mesh.quaternion.setFromAxisAngle(up, angle);
+  let angle = getAngle(position);
+  ballMesh.quaternion.setFromAxisAngle(up, angle);
 }
 
 function getAngle(position) {
-  var tangent = curve.getTangent(position).normalize();
+  let tangent = curve.getTangent(position).normalize();
   angle = -Math.atan(tangent.x / tangent.y);
   return angle;
 }
@@ -164,11 +272,20 @@ function createRenderer() {
   renderer.physicallyCorrectLights = true;
   renderer.gammaFactor = 2.2;
   renderer.gammaOutput = true;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMapSoft = true;
 }
 
 function render() {
-  renderer.render(scene, camera);
+  camera.lookAt(new THREE.Vector3(0, 0, -30));
   scene.simulate();
+
+  let gho = ballMesh.clone();
+  gho.mass = 0;
+  gho.material.transparent = true;
+  gho.material.opacity = 0.5;
+  scene.add(gho);
+  renderer.render(scene, camera);
 }
 
 function onWindowResize() {
