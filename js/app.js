@@ -7,7 +7,7 @@ let mesh;
 let controls;
 let angle = 0;
 let position = 0;
-let interval = 10;
+let interval = 0;
 let up = new THREE.Vector3(0, 0, 1);
 
 function init() {
@@ -167,15 +167,15 @@ function createMeshes() {
   curve = new THREE.CubicBezierCurve3(
     new THREE.Vector3(2, 5, 0),
     new THREE.Vector3(2, 5, -1),
-    new THREE.Vector3(1.3, 0.6, -22),
+    new THREE.Vector3(1, 0.6, -22),
     new THREE.Vector3(1, 0.1, -23)
   );
 
   curve2 = new THREE.CubicBezierCurve3(
     new THREE.Vector3(1, 0.1, -23),
     new THREE.Vector3(1, 0.1, -23),
-    new THREE.Vector3(0.3, 1, -25),
-    new THREE.Vector3(0.3, 1, -25)
+    new THREE.Vector3(0.4, 1, -25),
+    new THREE.Vector3(0.4, 1, -25)
   );
 
   createStumps();
@@ -246,6 +246,9 @@ function drawPath() {
 
 function move() {
   let point = curve.getPointAt(position);
+  if (isNaN(point.x)) {
+    point = curve2.getPointAt((interval += 0.03));
+  }
   scene.simulate();
   position += 0.03;
 
