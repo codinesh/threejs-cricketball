@@ -49,40 +49,52 @@ function createGround() {
   // //plane.rotateX(-1.57);
   // scene.add(plane);
 
-  let axes = new THREE.AxisHelper(20);
+  let axes = new THREE.AxisHelper(200);
   scene.add(axes);
 
   // Loader
   loader = new THREE.TextureLoader();
   ground_material = Physijs.createMaterial(
     new THREE.MeshLambertMaterial({
-      map: loader.load("images/rocks.jpg")
+      map: loader.load("images/pitch.png")
     }),
     0.8, // high friction
     0.4 // low restitution
   );
   ground_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping;
-  ground_material.map.repeat.set(3, 3);
+  ground_material.map.repeat.set(2, 4);
 
-  box_material = Physijs.createMaterial(
+  pitch_material = Physijs.createMaterial(
     new THREE.MeshLambertMaterial({
-      map: loader.load("images/plywood.jpg")
+      map: loader.load("images/pitch.png")
     }),
     0.4, // low friction
     0.6 // high restitution
   );
-  box_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping;
-  box_material.map.repeat.set(0.25, 0.25);
+  pitch_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping;
+  pitch_material.map.repeat.set(0.25, 0.25);
+
+  pitch = new Physijs.BoxMesh(
+    new THREE.BoxGeometry(10, 30, 0.1),
+    pitch_material,
+    0
+  );
+  pitch.receiveShadow = true;
+  pitch.rotateX(-Math.PI / 2);
+  pitch.position.y = -15;
+  //pitch.position.y = -0.5;
+  pitch.receiveShadow = true;
+  scene.add(pitch);
 
   // Ground
   ground = new Physijs.BoxMesh(
-    new THREE.BoxGeometry(10, 30, 0.1),
+    new THREE.BoxGeometry(1000, 1000, 0.1),
     ground_material,
     0 // mass
   );
   ground.receiveShadow = true;
-  ground.rotateX(Math.PI / 2);
-  ground.position.z = -15;
+  ground.rotateX(-Math.PI / 2);
+  //ground.position.z = -15;
   ground.receiveShadow = true;
   scene.add(ground);
   scene.simulate();
@@ -115,7 +127,7 @@ function createLights() {
 
   // directional light
   const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
-  directionalLight.position.set(0, 0, 10);
+  directionalLight.position.set(0, -100, 0);
   scene.add(ambientLight, directionalLight);
 }
 
@@ -145,22 +157,28 @@ function createMeshes() {
 
   let gho = ballMesh.clone();
   gho.position.y = 10.6;
-  gho.position.x = 2;
+  gho.position.x = -2;
   gho.position.z = -7;
   gho.mass = 0.002;
   scene.add(gho);
 
-  let ageometry = new THREE.CylinderGeometry(0.6, 0.7, 5, 12);
-  let acubeMesh1 = new Physijs.CylinderMesh(
-    ageometry,
+  let testMaterialPhysics = (ballMaterial = Physijs.createMaterial(
     new THREE.MeshBasicMaterial({
       color: 0x00ff00,
       flatShading: THREE.FlatShading
     }),
-    0
+    0.1, // high friction
+    0.4 // low restitution
+  ));
+
+  let ageometry = new THREE.CylinderGeometry(0.4, 0.4, 3, 1);
+  let acubeMesh1 = new Physijs.CylinderMesh(
+    ageometry,
+    testMaterialPhysics,
+    0.71
   );
 
-  acubeMesh1.position.set(2, 5, -7);
+  acubeMesh1.position.set(-2, 5, -7);
   acubeMesh1.mass = 0.3;
   scene.add(acubeMesh1);
 
