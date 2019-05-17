@@ -41,38 +41,29 @@ function init() {
 }
 
 function createGround() {
-  // const planeGeometry = new THREE.PlaneGeometry(2, 10, 10, 1);
-  // let planeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
-  // let plane = new Physijs.PlaneMesh(planeGeometry, planeMaterial);
-  // plane.receiveShadow = true;
-  // plane.translateY(5);
-  // //plane.rotateX(-1.57);
-  // scene.add(plane);
-
   let axes = new THREE.AxisHelper(200);
   scene.add(axes);
 
-  // Loader
   loader = new THREE.TextureLoader();
   ground_material = Physijs.createMaterial(
     new THREE.MeshLambertMaterial({
-      map: loader.load("images/pitch.png")
+      map: loader.load("images/Pitch3.jpg")
     }),
     0.8, // high friction
     0.4 // low restitution
   );
   ground_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping;
-  ground_material.map.repeat.set(2, 4);
+  ground_material.map.repeat.set(1, 1);
 
   pitch_material = Physijs.createMaterial(
     new THREE.MeshLambertMaterial({
-      map: loader.load("images/pitch.png")
+      map: loader.load("images/Pit.jpg")
     }),
     0.4, // low friction
     0.6 // high restitution
   );
   pitch_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping;
-  pitch_material.map.repeat.set(0.25, 0.25);
+  pitch_material.map.repeat.set(1, 1);
 
   pitch = new Physijs.BoxMesh(
     new THREE.BoxGeometry(10, 30, 0.1),
@@ -81,8 +72,8 @@ function createGround() {
   );
   pitch.receiveShadow = true;
   pitch.rotateX(-Math.PI / 2);
-  pitch.position.y = -15;
-  //pitch.position.y = -0.5;
+  pitch.position.y = 0;
+  pitch.position.z = -15;
   pitch.receiveShadow = true;
   scene.add(pitch);
 
@@ -94,7 +85,7 @@ function createGround() {
   );
   ground.receiveShadow = true;
   ground.rotateX(-Math.PI / 2);
-  //ground.position.z = -15;
+  ground.position.y = -0.01;
   ground.receiveShadow = true;
   scene.add(ground);
   scene.simulate();
@@ -122,7 +113,7 @@ function createLights() {
   const ambientLight = new THREE.HemisphereLight(
     0xddeeff, // bright sky color
     0x202020, // dim ground color
-    5 // intensity
+    1 // intensity
   );
 
   // directional light
@@ -155,32 +146,25 @@ function createMeshes() {
   ballMesh.position.y = 0.1;
   scene.add(ballMesh);
 
-  let gho = ballMesh.clone();
-  gho.position.y = 10.6;
-  gho.position.x = -2;
-  gho.position.z = -7;
-  gho.mass = 0.002;
-  scene.add(gho);
+  // let testMaterialPhysics = (ballMaterial = Physijs.createMaterial(
+  //   new THREE.MeshBasicMaterial({
+  //     color: 0x00ff00,
+  //     flatShading: THREE.FlatShading
+  //   }),
+  //   0.1, // high friction
+  //   0.4 // low restitution
+  // ));
 
-  let testMaterialPhysics = (ballMaterial = Physijs.createMaterial(
-    new THREE.MeshBasicMaterial({
-      color: 0x00ff00,
-      flatShading: THREE.FlatShading
-    }),
-    0.1, // high friction
-    0.4 // low restitution
-  ));
+  // let ageometry = new THREE.CylinderGeometry(0.4, 0.4, 3, 1);
+  // let acubeMesh1 = new Physijs.CylinderMesh(
+  //   ageometry,
+  //   testMaterialPhysics,
+  //   0.71
+  // );
 
-  let ageometry = new THREE.CylinderGeometry(0.4, 0.4, 3, 1);
-  let acubeMesh1 = new Physijs.CylinderMesh(
-    ageometry,
-    testMaterialPhysics,
-    0.71
-  );
-
-  acubeMesh1.position.set(-2, 5, -7);
-  acubeMesh1.mass = 0.3;
-  scene.add(acubeMesh1);
+  // acubeMesh1.position.set(-2, 5, -7);
+  // acubeMesh1.mass = 0.3;
+  // scene.add(acubeMesh1);
 
   curve = new THREE.CubicBezierCurve3(
     new THREE.Vector3(2, 5, 0),
@@ -201,6 +185,45 @@ function createMeshes() {
 }
 
 function createStumps() {
+  let lgeometry = new THREE.Geometry();
+  let lmaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+  lgeometry.vertices.push(new THREE.Vector3(-4, 0.1, -5));
+  lgeometry.vertices.push(new THREE.Vector3(4, 0.1, -5));
+  lgeometry.vertices.push(new THREE.Vector3(4, 0.1, -2));
+  lgeometry.vertices.push(new THREE.Vector3(-4, 0.1, -2));
+  lgeometry.vertices.push(new THREE.Vector3(-4, 0.1, -5));
+  lgeometry.vertices.push(new THREE.Vector3(-2.5, 0.1, -5));
+  lgeometry.vertices.push(new THREE.Vector3(-2.5, 0.1, -2));
+  lgeometry.vertices.push(new THREE.Vector3(2.5, 0.1, -2));
+  lgeometry.vertices.push(new THREE.Vector3(2.5, 0.1, -5));
+
+  crease = new THREE.Line(lgeometry, lmaterial);
+  scene.add(crease);
+
+  let anotherCrease = crease.clone();
+  anotherCrease.position.z = -23;
+  scene.add(anotherCrease);
+  // let lgeometry1 = new THREE.Geometry();
+  // lgeometry.vertices.push(new THREE.Vector3(-2, 0.1, -2));
+  // lgeometry.vertices.push(new THREE.Vector3(2, 0.1, -5));
+  // crease = new THREE.Line(lgeometry, lmaterial);
+  // scene.add(crease);
+
+  var dashedCreaseMaterial = new THREE.LineDashedMaterial({
+    color: 0xffffff,
+    dashSize: 1,
+    gapSize: 5,
+    scale: 0.1
+  });
+  let vgeometry = new THREE.Geometry();
+  vgeometry.vertices.push(new THREE.Vector3(-4, 0.1, -5));
+  vgeometry.vertices.push(new THREE.Vector3(-4, 0.1, -26));
+  vgeometry.vertices.push(new THREE.Vector3(4, 0.1, -26));
+  vgeometry.vertices.push(new THREE.Vector3(4, 0.1, -5));
+  dashedCrease = new THREE.Line(vgeometry, dashedCreaseMaterial);
+
+  scene.add(dashedCrease);
+
   let stumpsmaterial = Physijs.createMaterial(
     new THREE.MeshBasicMaterial({
       color: 0x00ff00,
