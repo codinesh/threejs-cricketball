@@ -1,4 +1,3 @@
-// these need to be accessed inside more than one function so we'll declare them first
 let container;
 let camera;
 let renderer;
@@ -21,9 +20,7 @@ function init() {
 
   scene.addEventListener("update", function() {
     scene.simulate(undefined, 1);
-    //physics_stats.update();
   });
-  //scene.rotateX(-1);
 
   createGround();
   createCamera();
@@ -99,7 +96,6 @@ function createCamera() {
 
   camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
   camera.position.set(0, 8, 15);
-  // camera.lookAt(scene.position);
 }
 
 function createControls() {
@@ -118,13 +114,13 @@ function createLights() {
 
   // directional light
   const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
-  directionalLight.position.set(0, -100, 0);
+  directionalLight.position.set(0, 10, 0);
   scene.add(ambientLight, directionalLight);
 }
 
 function createMeshes() {
   let ballGeometry = new THREE.SphereBufferGeometry(
-    0.1,
+    0.15,
     50,
     50,
     0,
@@ -146,26 +142,6 @@ function createMeshes() {
   ballMesh.position.y = 0.1;
   scene.add(ballMesh);
 
-  // let testMaterialPhysics = (ballMaterial = Physijs.createMaterial(
-  //   new THREE.MeshBasicMaterial({
-  //     color: 0x00ff00,
-  //     flatShading: THREE.FlatShading
-  //   }),
-  //   0.1, // high friction
-  //   0.4 // low restitution
-  // ));
-
-  // let ageometry = new THREE.CylinderGeometry(0.4, 0.4, 3, 1);
-  // let acubeMesh1 = new Physijs.CylinderMesh(
-  //   ageometry,
-  //   testMaterialPhysics,
-  //   0.71
-  // );
-
-  // acubeMesh1.position.set(-2, 5, -7);
-  // acubeMesh1.mass = 0.3;
-  // scene.add(acubeMesh1);
-
   curve = new THREE.CubicBezierCurve3(
     new THREE.Vector3(2, 5, 0),
     new THREE.Vector3(2, 5, -1),
@@ -176,8 +152,8 @@ function createMeshes() {
   curve2 = new THREE.CubicBezierCurve3(
     new THREE.Vector3(1, 0.1, -23),
     new THREE.Vector3(1, 0.1, -23),
-    new THREE.Vector3(0.4, 1, -25),
-    new THREE.Vector3(0.4, 1, -25)
+    new THREE.Vector3(-0.3, 1, -30),
+    new THREE.Vector3(-0.3, 1, -30)
   );
 
   createStumps();
@@ -203,11 +179,6 @@ function createStumps() {
   let anotherCrease = crease.clone();
   anotherCrease.position.z = -23;
   scene.add(anotherCrease);
-  // let lgeometry1 = new THREE.Geometry();
-  // lgeometry.vertices.push(new THREE.Vector3(-2, 0.1, -2));
-  // lgeometry.vertices.push(new THREE.Vector3(2, 0.1, -5));
-  // crease = new THREE.Line(lgeometry, lmaterial);
-  // scene.add(crease);
 
   var dashedCreaseMaterial = new THREE.LineDashedMaterial({
     color: 0xffffff,
@@ -217,31 +188,26 @@ function createStumps() {
   });
   let vgeometry = new THREE.Geometry();
   vgeometry.vertices.push(new THREE.Vector3(-4, 0.1, -5));
-  vgeometry.vertices.push(new THREE.Vector3(-4, 0.1, -26));
-  vgeometry.vertices.push(new THREE.Vector3(4, 0.1, -26));
+  vgeometry.vertices.push(new THREE.Vector3(-4, 0.1, -25));
+  vgeometry.vertices.push(new THREE.Vector3(4, 0.1, -25));
   vgeometry.vertices.push(new THREE.Vector3(4, 0.1, -5));
   dashedCrease = new THREE.Line(vgeometry, dashedCreaseMaterial);
 
   scene.add(dashedCrease);
 
-  let stumpsmaterial = Physijs.createMaterial(
-    new THREE.MeshBasicMaterial({
-      color: 0x00ff00,
-      flatShading: THREE.FlatShading
+  loader = new THREE.TextureLoader();
+  stumpsmaterial = Physijs.createMaterial(
+    new THREE.MeshLambertMaterial({
+      map: loader.load("images/wood.jpg")
     }),
-    0.8, // high friction
-    0.4 // low restitution
+    0.5, // high friction
+    0.8 // low restitution
   );
+  stumpsmaterial.map.wrapS = stumpsmaterial.map.wrapT = THREE.RepeatWrapping;
+  stumpsmaterial.map.repeat.set(1, 1);
 
-  let geometry = new THREE.CylinderGeometry(0.07, 0.07, 1, 12);
-  let cubeMesh1 = new Physijs.CylinderMesh(
-    geometry,
-    new THREE.MeshBasicMaterial({
-      color: 0x00ff00,
-      flatShading: THREE.FlatShading
-    }),
-    0
-  );
+  let geometry = new THREE.CylinderGeometry(0.07, 0.07, 2, 12);
+  let cubeMesh1 = new Physijs.CylinderMesh(geometry, stumpsmaterial, 0.5);
 
   cubeMesh1.position.set(0, 0.5, -2);
   cubeMesh1.mass = 0;
