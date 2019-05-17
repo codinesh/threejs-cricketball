@@ -8,6 +8,7 @@ let angle = 0;
 let position = 0;
 let interval = 0;
 let up = new THREE.Vector3(0, 0, 1);
+let markerPositionY = -23;
 
 function init() {
   Physijs.scripts.worker = "/lib/physijs_worker.js";
@@ -38,8 +39,8 @@ function init() {
 }
 
 function createGround() {
-  let axes = new THREE.AxisHelper(200);
-  scene.add(axes);
+  // let axes = new THREE.AxisHelper(200);
+  // scene.add(axes);
 
   loader = new THREE.TextureLoader();
   ground_material = Physijs.createMaterial(
@@ -145,18 +146,19 @@ function createMeshes() {
   curve = new THREE.CubicBezierCurve3(
     new THREE.Vector3(2, 5, 0),
     new THREE.Vector3(2, 5, -1),
-    new THREE.Vector3(1, 0.6, -22),
-    new THREE.Vector3(1, 0.1, -23)
+    new THREE.Vector3(1, 0.6, -19),
+    new THREE.Vector3(1, 0.1, -20)
   );
 
   curve2 = new THREE.CubicBezierCurve3(
-    new THREE.Vector3(1, 0.1, -23),
-    new THREE.Vector3(1, 0.1, -23),
-    new THREE.Vector3(-0.3, 1, -30),
-    new THREE.Vector3(-0.3, 1, -30)
+    new THREE.Vector3(1, 0.2, -20),
+    new THREE.Vector3(1, 0.5, -21),
+    new THREE.Vector3(0.5, 1.5, markerPositionY),
+    new THREE.Vector3(0.5, 1.5, markerPositionY)
   );
 
   createStumps();
+  createTarget();
   drawPath();
 }
 
@@ -237,6 +239,29 @@ function createStumps() {
   another5.translateX(0.2);
   another5.mass = 0;
   scene.add(another5);
+}
+
+function createTarget() {
+  let lgeometry = new THREE.Geometry();
+  let lmaterial = new THREE.LineBasicMaterial({ color: "red" });
+  lgeometry.vertices.push(new THREE.Vector3(-2, 3, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(2, 3, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(2, 1, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(-2, 1, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(-2, 3, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(-1, 3, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(-1, 1, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(-1, 3, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(0, 3, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(0, 1, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(0, 3, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(1, 3, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(1, 1, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(2, 1, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(2, 2, markerPositionY));
+  lgeometry.vertices.push(new THREE.Vector3(-2, 2, markerPositionY));
+  let marker = new THREE.Line(lgeometry, lmaterial);
+  scene.add(marker);
 }
 
 function drawPath() {
