@@ -20,7 +20,13 @@ a:hover {
 }
 
 #scene-container {
-  position: absolute;
-  width: 100%;
-  height: 100%;
+  position: fixed;
+  width: 500px;
+  height: 300px;
+}
+
+#container {
+  position: fixed;
+  width: 500px;
+  height: 300px;
 }

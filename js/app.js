@@ -92,11 +92,11 @@ function createGround() {
 function createCamera() {
   const fov = 45;
   const aspect = container.clientWidth / container.clientHeight;
-  const near = 1;
-  const far = 1000;
+  const near = 0.1;
+  const far = 100;
 
   camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(0, 8, 15);
+  camera.position.set(0, 4, 8);
 }
 
 function createControls() {
@@ -312,9 +312,14 @@ function createRenderer() {
 }
 
 function render() {
-  camera.lookAt(new THREE.Vector3(0, 0, -30));
-  scene.simulate();
-
+  camera.lookAt(new THREE.Vector3(0, 0, -15));
+  //camera.lookAt(ballMesh.position);
+  camera.position.y = 10;
+  if (camera.position.x >= -23) {
+    camera.position.z -= 0.09;
+    camera.position.x -= 0.09;
+    scene.simulate();
+  }
   let gho = ballMesh.clone();
   gho.mass = 0;
   gho.material.transparent = true;
